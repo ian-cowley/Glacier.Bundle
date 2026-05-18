@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="samples/Glacier.Bundle.Demo/Glacier.Bundle.Demo.csproj" Id="a6d20875-3d1a-4724-a32a-b851bc969837" />
+  <Project Path="src/Glacier.Bundle/Glacier.Bundle.csproj" />
+</Solution>
