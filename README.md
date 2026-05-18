@@ -1,7 +1,11 @@
 # Glacier.Bundle
 
+[![DEV.to Story](https://img.shields.io/badge/DEV.to-Story-0a0a0a?style=for-the-badge&logo=devto&logoColor=white)](https://dev.to/iancowley/i-built-a-c-knowledge-layer-to-solve-the-ai-agent-memory-crisis-34mj)
 [![NuGet Version](https://img.shields.io/nuget/v/Glacier.Bundle.svg?style=flat-square)](https://www.nuget.org/packages/Glacier.Bundle/)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Glacier.Bundle.svg?style=flat-square)](https://www.nuget.org/packages/Glacier.Bundle/)
+
+> 📖 **Read the Deep-Dive**: **[I built a C# knowledge layer to solve the AI agent memory crisis.](https://dev.to/iancowley/i-built-a-c-knowledge-layer-to-solve-the-ai-agent-memory-crisis-34mj)**
+
 
 **Glacier.Bundle** is the unified, high-density AI semantic orchestration engine and prompt context compiler for .NET 10. It coordinates, resolves, and aggregates multi-shape datasets from the entire **Glacier High-Performance Storage Suite** into single, high-density, context-rich prompt frames for LLMs under 20 milliseconds.
 
