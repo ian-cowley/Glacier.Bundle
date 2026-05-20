@@ -1,16 +1,17 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Glacier.DocTree" Version="1.0.0" />
-    <PackageReference Include="Glacier.Graph" Version="1.0.0" />
-    <PackageReference Include="Glacier.Polaris" Version="1.0.6" />
-    <PackageReference Include="Glacier.Vector" Version="1.0.0" />
+    <PackageReference Include="Glacier.DocTree" Version="1.0.3" />
+    <PackageReference Include="Glacier.Graph" Version="1.0.3" />
+    <PackageReference Include="Glacier.Polaris" Version="1.0.10" />
+    <PackageReference Include="Glacier.Vector" Version="1.0.3" />
   </ItemGroup>
 
 </Project>
