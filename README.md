@@ -1,3 +1,5 @@
+![Glacier.Bundle Banner](assets/banner.jpg)
+
 # Glacier.Bundle
 
 [![DEV.to Story](https://img.shields.io/badge/DEV.to-Story-0a0a0a?style=for-the-badge&logo=devto&logoColor=white)](https://dev.to/iancowley/i-built-a-c-knowledge-layer-to-solve-the-ai-agent-memory-crisis-34mj)
