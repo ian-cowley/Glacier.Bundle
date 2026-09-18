@@ -2,9 +2,13 @@
 
 # Glacier.Bundle
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
+[![Native AOT](https://img.shields.io/badge/Native%20AOT-Ready-brightgreen.svg)](https://learn.microsoft.com/dotnet/core/deploying/native-aot/)
+[![NuGet Version](https://img.shields.io/nuget/v/Glacier.Bundle.svg)](https://www.nuget.org/packages/Glacier.Bundle/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Glacier.Bundle.svg)](https://www.nuget.org/packages/Glacier.Bundle/)
+[![Ecosystem](https://img.shields.io/badge/Glacier-Ecosystem-blue)](https://github.com/ian-cowley)
 [![DEV.to Story](https://img.shields.io/badge/DEV.to-Story-0a0a0a?style=for-the-badge&logo=devto&logoColor=white)](https://dev.to/iancowley/i-built-a-c-knowledge-layer-to-solve-the-ai-agent-memory-crisis-34mj)
-[![NuGet Version](https://img.shields.io/nuget/v/Glacier.Bundle.svg?style=flat-square)](https://www.nuget.org/packages/Glacier.Bundle/)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/Glacier.Bundle.svg?style=flat-square)](https://www.nuget.org/packages/Glacier.Bundle/)
 
 > 📖 **Read the Deep-Dive**: **[I built a C# knowledge layer to solve the AI agent memory crisis.](https://dev.to/iancowley/i-built-a-c-knowledge-layer-to-solve-the-ai-agent-memory-crisis-34mj)**
 
