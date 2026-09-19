@@ -158,6 +158,12 @@ No hardware throttling is applied.
 
 We welcome community contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for local setups, branch models, and PR checklist details.
 
+## 🆕 What's New in v1.0.6
+
+- **Strict `TokenBudget` guarantee** — budget enforcement now handles all boundary edge cases, preventing token overruns on long multi-section bundles.
+- **`CompactingBundleBuilder` with zero-copy span-based assembly** — prompt frames are built directly into pre-allocated buffers without intermediate string allocation.
+- **Full test suite authored from scratch** — **27 tests** covering budget enforcement, multi-layer context compilation, and builder correctness.
+
 ## Credits
 
 Developed by **Ian Cowley** and **Antigravity (Google DeepMind)**.
