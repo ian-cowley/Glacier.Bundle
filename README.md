@@ -160,11 +160,11 @@ No hardware throttling is applied.
 
 We welcome community contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for local setups, branch models, and PR checklist details.
 
-## 🆕 What's New in v1.0.6
+## 🆕 What's New in v1.1.0
 
-- **Strict `TokenBudget` guarantee** — budget enforcement now handles all boundary edge cases, preventing token overruns on long multi-section bundles.
-- **`CompactingBundleBuilder` with zero-copy span-based assembly** — prompt frames are built directly into pre-allocated buffers without intermediate string allocation.
-- **Full test suite authored from scratch** — **27 tests** covering budget enforcement, multi-layer context compilation, and builder correctness.
+- **Reservation-aware TokenBudget enforcement** — CompactingBundleBuilder honors TokenBudget.AvailableBudget (TotalBudget - ReservedTokens) and per-section BundleSection.StrategyOverride across StrictPrune, HeadTailTruncate, and ProportionalDecay.
+- **Span-backed IBufferWriter<char> output & Native AOT compatibility** — CompactingBundleBuilder.WriteTo writes directly to IBufferWriter<char> with IsAotCompatible and strict warning-free compilation.
+- **Upgraded Glacier storage dependencies** — Glacier.DocTree 1.2.0, Glacier.Graph 1.1.0, and Glacier.Vector 1.1.0.
 
 ## Credits
 

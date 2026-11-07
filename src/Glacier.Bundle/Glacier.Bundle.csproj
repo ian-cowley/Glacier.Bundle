@@ -4,14 +4,29 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.6</Version>
+    <IsAotCompatible>true</IsAotCompatible>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <Version>1.1.0</Version>
+    <PackageId>Glacier.Bundle</PackageId>
+    <Authors>Ian Cowley</Authors>
+    <Company>Glacier</Company>
+    <Description>Unified AI semantic context orchestrator and token-budgeted prompt compiler integrating Glacier.DocTree, Glacier.Graph, and Glacier.Vector for .NET 10.</Description>
+    <PackageTags>llm context-bundler rag token-budget prompt-compiler doctree graph vector aot</PackageTags>
+    <RepositoryUrl>https://github.com/ian-cowley/Glacier.Bundle</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Glacier.DocTree" Version="1.0.5" />
-    <PackageReference Include="Glacier.Graph" Version="1.0.4" />
-    <PackageReference Include="Glacier.Polaris" Version="1.0.20" />
-    <PackageReference Include="Glacier.Vector" Version="1.0.7" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Glacier.DocTree" Version="1.2.0" />
+    <PackageReference Include="Glacier.Graph" Version="1.1.0" />
+    <PackageReference Include="Glacier.Vector" Version="1.1.0" />
   </ItemGroup>
 
 </Project>

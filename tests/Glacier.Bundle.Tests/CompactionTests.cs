@@ -103,5 +103,36 @@ namespace Glacier.Bundle.Tests
             int finalTokens = budget.EstimateTokens(result);
             Assert.True(finalTokens <= 50, $"Expected <= 50 tokens, but got {finalTokens}");
         }
+
+        [Fact]
+        public void Build_RespectsReservedTokensViaAvailableBudget()
+        {
+            var budget = new TokenBudget(totalBudget: 100, defaultStrategy: CompactionStrategy.HeadTailTruncate);
+            Assert.True(budget.Reserve(60));
+            Assert.Equal(40, budget.AvailableBudget);
+
+            var builder = new CompactingBundleBuilder(budget);
+            builder.AddSection("Context", 100, "START_" + new string('Z', 300) + "_END");
+
+            string result = builder.Build();
+            int resultTokens = budget.EstimateTokens(result);
+            Assert.True(resultTokens <= 40, $"Expected <= 40 available tokens (60 reserved of 100), got {resultTokens}");
+        }
+
+        [Fact]
+        public void Build_ExecutesPerSectionStrategyOverride()
+        {
+            var budget = new TokenBudget(totalBudget: 45, defaultStrategy: CompactionStrategy.StrictPrune);
+            var builder = new CompactingBundleBuilder(budget);
+
+            // Under StrictPrune default, an oversized section with HeadTailTruncate StrategyOverride is head-tail truncated instead of dropped
+            string body = "HEAD_MARKER_" + new string('M', 320) + "_TAIL_MARKER";
+            builder.AddSection("OverriddenSection", 50, body, isFixed: false, strategyOverride: CompactionStrategy.HeadTailTruncate);
+
+            string result = builder.Build();
+            Assert.Contains("HEAD_MARKER", result);
+            Assert.Contains("TAIL_MARKER", result);
+            Assert.True(budget.EstimateTokens(result) <= 45);
+        }
     }
 }
