@@ -78,5 +78,45 @@ namespace Glacier.Bundle.Tests
             Assert.EndsWith("ZZZZ", result);
             Assert.Contains("[TRUNCATED", result);
         }
+
+        [Fact]
+        public void Truncation_WithSurrogatePairs_NeverSplitsUtf16CodePoint()
+        {
+            var estimator = new HeuristicTokenEstimator(charsPerToken: 1.0);
+            // Surrogate pair '🚀' (2 UTF-16 chars each) at boundary index 3..4 and in tail
+            string text = "abc🚀xyz";
+            string truncated = estimator.TruncateToTokens(text, maxTokens: 4); // targetChars = 4 splits '🚀'
+            Assert.Equal("abc", truncated);
+            Assert.False(char.IsHighSurrogate(truncated[^1]));
+
+            var budget = new TokenBudget(100, new HeuristicTokenEstimator(1.0));
+            string longEmoji = new string('a', 40) + string.Concat(System.Linq.Enumerable.Repeat("🚀", 25));
+            string headTail = budget.TruncateHeadTail(longEmoji, maxTokens: 50, headRatio: 0.5);
+            foreach (int idx in System.Linq.Enumerable.Range(0, headTail.Length))
+            {
+                if (char.IsHighSurrogate(headTail[idx]))
+                    Assert.True(idx + 1 < headTail.Length && char.IsLowSurrogate(headTail[idx + 1]));
+                if (char.IsLowSurrogate(headTail[idx]))
+                    Assert.True(idx - 1 >= 0 && char.IsHighSurrogate(headTail[idx - 1]));
+            }
+        }
+
+        [Fact]
+        public void TokenBudget_ConcurrentReserve_NeverExceedsTotalBudget()
+        {
+            var budget = new TokenBudget(100);
+            int succeeded = 0;
+            System.Threading.Tasks.Parallel.For(0, 200, _ =>
+            {
+                if (budget.Reserve(10))
+                {
+                    System.Threading.Interlocked.Increment(ref succeeded);
+                }
+            });
+
+            Assert.Equal(10, succeeded);
+            Assert.Equal(100, budget.ReservedTokens);
+            Assert.Equal(0, budget.AvailableBudget);
+        }
     }
 }

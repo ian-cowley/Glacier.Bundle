@@ -46,7 +46,12 @@ namespace Glacier.Bundle.Budgeting
                 return text;
             }
 
-            return text.Substring(0, targetChars);
+            if (targetChars > 0 && char.IsHighSurrogate(text[targetChars - 1]))
+            {
+                targetChars--;
+            }
+
+            return targetChars > 0 ? text.Substring(0, targetChars) : string.Empty;
         }
     }
 }

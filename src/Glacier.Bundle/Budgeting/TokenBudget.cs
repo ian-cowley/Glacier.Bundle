@@ -7,12 +7,35 @@ namespace Glacier.Bundle.Budgeting
     /// </summary>
     public class TokenBudget
     {
+        private readonly object _budgetLock = new();
+        private int _reservedTokens;
+
         public int TotalBudget { get; }
-        public int ReservedTokens { get; private set; }
+
+        public int ReservedTokens
+        {
+            get
+            {
+                lock (_budgetLock)
+                {
+                    return _reservedTokens;
+                }
+            }
+        }
+
         public ITokenEstimator Estimator { get; }
         public CompactionStrategy DefaultStrategy { get; set; }
 
-        public int AvailableBudget => Math.Max(0, TotalBudget - ReservedTokens);
+        public int AvailableBudget
+        {
+            get
+            {
+                lock (_budgetLock)
+                {
+                    return Math.Max(0, TotalBudget - _reservedTokens);
+                }
+            }
+        }
 
         public TokenBudget(
             int totalBudget,
@@ -36,13 +59,16 @@ namespace Glacier.Bundle.Budgeting
                 throw new ArgumentOutOfRangeException(nameof(tokens), "Reserved tokens cannot be negative.");
             }
 
-            if (ReservedTokens + tokens > TotalBudget)
+            lock (_budgetLock)
             {
-                return false;
-            }
+                if (_reservedTokens + tokens > TotalBudget)
+                {
+                    return false;
+                }
 
-            ReservedTokens += tokens;
-            return true;
+                _reservedTokens += tokens;
+                return true;
+            }
         }
 
         public void Release(int tokens)
@@ -52,12 +78,18 @@ namespace Glacier.Bundle.Budgeting
                 throw new ArgumentOutOfRangeException(nameof(tokens), "Released tokens cannot be negative.");
             }
 
-            ReservedTokens = Math.Max(0, ReservedTokens - tokens);
+            lock (_budgetLock)
+            {
+                _reservedTokens = Math.Max(0, _reservedTokens - tokens);
+            }
         }
 
         public void ResetReservation()
         {
-            ReservedTokens = 0;
+            lock (_budgetLock)
+            {
+                _reservedTokens = 0;
+            }
         }
 
         public int EstimateTokens(string text) => Estimator.EstimateTokens(text);
@@ -99,6 +131,10 @@ namespace Glacier.Bundle.Budgeting
             int charsPerToken = (int)Math.Max(1, (text.Length / (double)currentTokens));
             int tailCharEstimate = tailTokens * charsPerToken;
             int tailStartIndex = Math.Max(head.Length, text.Length - tailCharEstimate);
+            if (tailStartIndex < text.Length && char.IsLowSurrogate(text[tailStartIndex]))
+            {
+                tailStartIndex++;
+            }
             string tail = text.Substring(tailStartIndex);
 
             int omittedChars = Math.Max(0, tailStartIndex - head.Length);
