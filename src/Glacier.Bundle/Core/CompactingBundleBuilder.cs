@@ -764,6 +764,23 @@ namespace Glacier.Bundle.Core
                     }
                 }
 
+                if (nonEmptyFixedCount == 0 && maxBudget > 0 && string.IsNullOrEmpty(_workEntries[bestNonFixedIdx].Content) && bestNonFixedStrategy != CompactionStrategy.StrictPrune)
+                {
+                    for (int k = 0; k < n; k++)
+                    {
+                        int wi = _workIndices[k];
+                        var cleared = _workEntries[wi];
+                        cleared.Content = string.Empty;
+                        cleared.CachedTokens = 0;
+                        _workEntries[wi] = cleared;
+                    }
+                    var restored = _workEntries[bestNonFixedIdx];
+                    restored.Content = bestNonFixedOriginalContent;
+                    restored.CachedTokens = bestNonFixedOriginalTokens;
+                    _workEntries[bestNonFixedIdx] = restored;
+                    ShrinkSingleEntryToFit(bestNonFixedIdx, maxBudget, bestNonFixedStrategy, newlineLen, newlineTokens);
+                }
+
                 if (nonEmptyFixedCount == 0 && maxBudget > 0)
                 {
                     bool anyNonEmpty = false;
