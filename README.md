@@ -5,185 +5,57 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
 [![Native AOT](https://img.shields.io/badge/Native%20AOT-Ready-brightgreen.svg)](https://learn.microsoft.com/dotnet/core/deploying/native-aot/)
-[![NuGet Version](https://img.shields.io/nuget/v/Glacier.Bundle.svg)](https://www.nuget.org/packages/Glacier.Bundle/)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/Glacier.Bundle.svg)](https://www.nuget.org/packages/Glacier.Bundle/)
-[![Ecosystem](https://img.shields.io/badge/Glacier-Ecosystem-blue)](https://github.com/ian-cowley)
-[![DEV.to Story](https://img.shields.io/badge/DEV.to-Story-0a0a0a?style=for-the-badge&logo=devto&logoColor=white)](https://dev.to/iancowley/i-built-a-c-knowledge-layer-to-solve-the-ai-agent-memory-crisis-34mj)
+[![NuGet](https://img.shields.io/nuget/v/Glacier.Bundle.svg)](https://www.nuget.org/packages/Glacier.Bundle/)
 [![Website](https://img.shields.io/badge/Website-glaciersoftware.dev-66fcf1.svg)](https://glaciersoftware.dev/)
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-orange.svg?logo=buy-me-a-coffee)](https://buymeacoffee.com/glaciersoftware)
 
-> 📖 **Read the Deep-Dive**: **[I built a C# knowledge layer to solve the AI agent memory crisis.](https://dev.to/iancowley/i-built-a-c-knowledge-layer-to-solve-the-ai-agent-memory-crisis-34mj)**
+`Glacier.Bundle` is a prompt-assembly and token-budgeting library for .NET 10. It gives AI applications a single `BundleContext` registry to query across `Glacier.Polaris` tables, `Glacier.Vector` indices, `Glacier.Graph` networks, and `Glacier.DocTree` Markdown trees into one compact text frame.
 
+It is built for LLM orchestration pipelines that pull structured records, graph hops, document sections, and dense vector hits under strict token limits and Native AOT constraints without reflection or `dynamic` dispatch.
 
-**Glacier.Bundle** is the unified, high-density AI semantic orchestration engine and prompt context compiler for .NET 10. It coordinates, resolves, and aggregates multi-shape datasets from the entire **Glacier High-Performance Storage Suite** into single, high-density, context-rich prompt frames for LLMs under 20 milliseconds.
+## Install
 
-Rather than performing separate slow queries, Glacier.Bundle acts as the single central broker—binding relational topology, document hierarchies, semantic similarity, and tabular CRM data together to give AI models complete, unified truth.
-
----
-
-## Sibling Storage Engines
-
-Glacier.Bundle leverages the following specialized high-performance C# libraries to compile context:
-
-*   🌐 **[Glacier.Graph](https://github.com/ian-cowley/Glacier.Graph)**: High-performance, zero-allocation array-backed graph database utilizing Forward Star representation for sub-millisecond local relation and fraud neighborhood tracing.
-*   📂 **[Glacier.DocTree](https://github.com/ian-cowley/Glacier.DocTree)**: Zero-dependency semantic Markdown document parser and breadcrumb tree traversal engine for absolute contextual RAG retrieval.
-*   🧠 **[Glacier.Vector](https://github.com/ian-cowley/Glacier.Vector)**: Hardware-accelerated (SIMD-optimized) vector similarity search index for instant semantic retrieval.
-*   📊 **[Glacier.Polaris](https://github.com/ian-cowley/PolarsPlus)**: Blazing-fast, C#-native high-speed tabular DataFrame engine (derived from PolarsPlus).
-
----
-
-## Key Features
-
-*   🔄 **Unified Bundle Context**: A thread-safe, central registry (`BundleContext`) coordinating vectors, graph topologies, document node hierarchies, and tabular schemas.
-*   🛠️ **Fluent BundleBuilder**: A zero-allocation builder pattern allowing programmatically structured formatting and assembly of prompts.
-*   🌐 **Multi-Layer Integration**: Connects tabular data CRM rows, Graph neighbor lists, strict DocTree section texts, and Vector semantic results seamlessly.
-*   ⚡ **Sub-20ms Compilations**: Fully optimized C# code paths that resolve massive multi-shape datasets in milliseconds.
-
----
-
-## Installation
-
-Install Glacier.Bundle using the .NET CLI:
-
-```bash
+```powershell
 dotnet add package Glacier.Bundle
 ```
 
----
-
 ## Quick Start
 
-### 1. Build and Register the Registry Layer
-
 ```csharp
+using System.Buffers;
+using Glacier.Bundle.Budgeting;
 using Glacier.Bundle.Core;
-using Glacier.Vector.Index;
-using Glacier.Graph.Storage;
-using Glacier.DocTree.Core;
-using Glacier.Polaris;
 
-// Initialize central bundle registry
-var bundleCtx = new BundleContext();
+var context = new BundleContext();
+// Register Polaris DataFrames, GraphStore/CsrGraphStore, DocNode trees, and Vector/Hnsw indices.
 
-// 1. Register tabular CRM databases (Polaris DataFrame or typed AOT models)
-DataFrame clientDf = ...;
-bundleCtx.RegisterDataFrame("Polaris_Clients", clientDf);
-// Or custom strongly-typed tabular objects:
-// bundleCtx.RegisterTabularData("Polaris_Clients_Custom", clientData);
+var budget = new TokenBudget(totalBudget: 512, defaultStrategy: CompactionStrategy.ProportionalDecay);
+var builder = new CompactingBundleBuilder(budget, context)
+    .BeginBundle("Customer Escalation", priority: int.MaxValue)
+    .AddSection("Summary", priority: 100, content: "Enterprise SLA escalation context.", isFixed: true);
 
-// 2. Register hardware-accelerated Vector search indices (VectorIndex or HnswVectorIndex)
-VectorIndex vectorIdx = ...;
-bundleCtx.RegisterVectorIndex("Vector_Tickets", vectorIdx);
-
-// 3. Register Graph relational databases (GraphStore or CsrGraphStore)
-GraphStore graphStore = ...;
-bundleCtx.RegisterGraphStore("Graph_Topology", graphStore);
-
-// 4. Register parsed SLA Markdown documents
-DocNode docRoot = ...;
-bundleCtx.RegisterDocTree("DocTree_SLA", docRoot);
+var writer = new ArrayBufferWriter<char>();
+builder.WriteTo(writer);
 ```
 
-### 2. Compile Multidimensional Context via BundleBuilder
+## What You Can Do
 
-```csharp
-var queryVector = new float[1536] { 1.0f, ... };
+- **Register multiple stores (`BundleContext`):** Bind named keys to `DataFrame`, typed tabular objects (`RegisterTabularData<T>`), `GraphStore`, `CsrGraphStore`, `DocNode`, `VectorIndex`, and `HnswVectorIndex` inside one thread-safe registry.
+- **Assemble formatted context (`BundleBuilder`):** Chain `BeginBundle`, `AppendTabularRow`, `AppendDataFrame`, `AppendGraphTopology`, `AppendCsrGraphTopology`, `AppendDocumentTreeSection`, `AppendVectorContext`, and `AppendHnswVectorContext` into a structured prompt string.
+- **Enforce hard token budgets (`CompactingBundleBuilder` & `TokenBudget`):** Reserve header/footer headroom, honor `TokenBudget.AvailableBudget`, override compaction per section (`StrictPrune`, `HeadTailTruncate`, `ProportionalDecay`), and stream straight to `IBufferWriter<char>` via `WriteTo`.
+- **Estimate & truncate text safely (`HeuristicTokenEstimator`):** Estimate token budgets cleanly and truncate text along Unicode `StringInfo` grapheme and word boundaries without splitting surrogate pairs or emojis.
 
-string contextPrompt = new BundleBuilder(bundleCtx)
-    .BeginBundle("Customer Escalation Resolution")
-    .AppendTabularRow("Client CRM Profile", sb => sb
-        .AppendLine("  ID: User_9021")
-        .AppendLine("  Name: DeltaCorp Ltd")
-        .AppendLine("  Tier: Enterprise"))
-    .AppendGraphTopology("Graph_Topology", "User_9021", maxHops: 2, label: "Relational Fraud Mapping")
-    .AppendDocumentTreeSection("DocTree_SLA", "Enterprise SLAs", label: "Guaranteed SLA Policies")
-    .AppendVectorContext("Vector_Tickets", queryVector, topK: 1, label: "Semantic Ticket History")
-    .Build();
+## Platform & Compatibility
 
-Console.WriteLine(contextPrompt);
-```
+`Glacier.Bundle` targets `.NET 10` (`net10.0`) with `<IsAotCompatible>true</IsAotCompatible>` and zero reflection-based `dynamic` lookups.
 
----
+## Documentation
 
-## Interactive Demo Output
+- [User Manual](docs/manual.md) — Complete API reference for `BundleContext`, `BundleBuilder`, `CompactingBundleBuilder`, `TokenBudget`, and sample demo usage
+- [Architecture](docs/architecture.md) — Thread-safe registries, `ConditionalWeakTable` search wrappers, `ArrayPool<T>` query scratch buffers, and Unicode truncation
+- [Changelog](CHANGELOG.md) — Release history (`v1.1.0` – `v1.1.1`)
 
-When running the bundled orchestrator demo (`samples/Glacier.Bundle.Demo`), Glacier.Bundle resolves CRM details, relational fraud paths, strict SLA Markdown structures, and ticket history from raw bytes under 20ms:
+## License & Credits
 
-```text
-======================================================================
- Glacier.Bundle | Unified AI Semantic Orchestration Engine
-======================================================================
+Licensed under the [MIT License](LICENSE).
 
-[1] Populating Polaris Tabular Stub...
-[2] Populating Vector Search Store (SIMD)...
-[3] Populating Relational Graph Store...
-[4] Parsing SLA Document Tree...
-
-All high-performance storage engines registered in BundleContext!
-
-[5] Executing high-speed Bundle compilation...
-
-Bundle compiled in 17.4316 ms!
-
-======================================================================
- SYSTEM RESOLVED CONTEXT BUNDLE: CUSTOMER ESCALATION: DELTACORP LTD
- GENERATED AT: 2026-05-18 17:14:55 UTC
-======================================================================
-
---- [DATA LAYER] CLIENT CRM PROFILE ---
-  ID: User_9021
-  Name: DeltaCorp Ltd
-  Tier: Enterprise
-  Value: £85,200.00
-  Status: Active
-
---- [RELATIONAL LAYER] RELATIONAL FRAUD VERIFICATION (2 HOPS FROM User_9021) ---
-Target Entity: User_9021
-Connected Network Entities (3):
-  SubAccount_B, SubAccount_A, Suspicious_IP_88
-
---- [HIERARCHICAL LAYER] STRUCTURAL SLA TERMS ---
-Document Path: Document Root > Service Level Agreements > Enterprise SLAs
-Content Frame:
-Enterprise SLAs
-Enterprise accounts enjoy a guaranteed 99.99% uptime with immediate 15-minute response times.
-No hardware throttling is applied.
-
---- [SEMANTIC LAYER] SEMANTIC HISTORICAL MATCHING ---
-[Rank 1 | Match Score: 1.0000] Historical Ticket #4823: Customer requested custom API access rate expansion. Granted temporary bypass.
-
-======================================================================
- END OF RESOLVED CONTEXT BUNDLE
-======================================================================
-```
-
----
-
-## Contributing
-
-We welcome community contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for local setups, branch models, and PR checklist details.
-
-## 🆕 What's New in v1.1.0
-
-- **Reservation-aware TokenBudget enforcement** — CompactingBundleBuilder honors TokenBudget.AvailableBudget (TotalBudget - ReservedTokens) and per-section BundleSection.StrategyOverride across StrictPrune, HeadTailTruncate, and ProportionalDecay.
-- **Span-backed IBufferWriter<char> output & Native AOT compatibility** — CompactingBundleBuilder.WriteTo writes directly to IBufferWriter<char> with IsAotCompatible and strict warning-free compilation.
-- **Upgraded Glacier storage dependencies** — Glacier.DocTree 1.2.0, Glacier.Graph 1.1.0, and Glacier.Vector 1.1.0.
-
-## Credits
-
-Developed by **Ian Cowley** and **Antigravity (Google DeepMind)**.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## ❄️ Glacier Ecosystem & Support
-
-Part of the **[Glacier Ecosystem](https://glaciersoftware.dev/)** — high-performance, zero-allocation developer tooling and data engines natively built for modern C# and .NET 10.
-
-* 🌐 **Website & Documentation**: [glaciersoftware.dev](https://glaciersoftware.dev/)
-* ☕ **Buy Me a Coffee**: [buymeacoffee.com/glaciersoftware](https://buymeacoffee.com/glaciersoftware)
-* ❤️ **GitHub Sponsors**: [github.com/sponsors/ian-cowley](https://github.com/sponsors/ian-cowley)
-* 🐙 **All Repositories**: [github.com/ian-cowley](https://github.com/ian-cowley)
+Developed by Ian Cowley, Antigravity (Google DeepMind) and Claude.
