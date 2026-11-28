@@ -60,19 +60,22 @@ using Glacier.Bundle.Core;
 using Glacier.Vector.Index;
 using Glacier.Graph.Storage;
 using Glacier.DocTree.Core;
+using Glacier.Polaris;
 
 // Initialize central bundle registry
 var bundleCtx = new BundleContext();
 
-// 1. Register tabular CRM databases
-var clientData = new Dictionary<string, object>(); // Representing Polaris DataFrames
-bundleCtx.RegisterTabularData("Polaris_Clients", clientData);
+// 1. Register tabular CRM databases (Polaris DataFrame or typed AOT models)
+DataFrame clientDf = ...;
+bundleCtx.RegisterDataFrame("Polaris_Clients", clientDf);
+// Or custom strongly-typed tabular objects:
+// bundleCtx.RegisterTabularData("Polaris_Clients_Custom", clientData);
 
-// 2. Register hardware-accelerated Vector search indices
+// 2. Register hardware-accelerated Vector search indices (VectorIndex or HnswVectorIndex)
 VectorIndex vectorIdx = ...;
 bundleCtx.RegisterVectorIndex("Vector_Tickets", vectorIdx);
 
-// 3. Register Graph relational databases
+// 3. Register Graph relational databases (GraphStore or CsrGraphStore)
 GraphStore graphStore = ...;
 bundleCtx.RegisterGraphStore("Graph_Topology", graphStore);
 

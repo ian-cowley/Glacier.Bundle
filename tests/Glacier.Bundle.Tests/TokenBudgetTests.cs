@@ -118,5 +118,25 @@ namespace Glacier.Bundle.Tests
             Assert.Equal(100, budget.ReservedTokens);
             Assert.Equal(0, budget.AvailableBudget);
         }
+
+        [Fact]
+        public void Reserve_SignedInt32Overflow_ReturnsFalseAndPreservesReservedTokens()
+        {
+            var smallBudget = new TokenBudget(100);
+            Assert.True(smallBudget.Reserve(1));
+            Assert.False(smallBudget.Reserve(int.MaxValue));
+            Assert.Equal(1, smallBudget.ReservedTokens);
+            Assert.Equal(99, smallBudget.AvailableBudget);
+
+            var maxBudget = new TokenBudget(int.MaxValue);
+            Assert.True(maxBudget.Reserve(int.MaxValue - 5));
+            Assert.False(maxBudget.Reserve(10));
+            Assert.Equal(int.MaxValue - 5, maxBudget.ReservedTokens);
+            Assert.Equal(5, maxBudget.AvailableBudget);
+
+            Assert.True(maxBudget.Reserve(5));
+            Assert.Equal(int.MaxValue, maxBudget.ReservedTokens);
+            Assert.Equal(0, maxBudget.AvailableBudget);
+        }
     }
 }

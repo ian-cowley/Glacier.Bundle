@@ -32,7 +32,7 @@ namespace Glacier.Bundle.Budgeting
             {
                 lock (_budgetLock)
                 {
-                    return Math.Max(0, TotalBudget - _reservedTokens);
+                    return (int)Math.Max(0L, (long)TotalBudget - _reservedTokens);
                 }
             }
         }
@@ -61,7 +61,7 @@ namespace Glacier.Bundle.Budgeting
 
             lock (_budgetLock)
             {
-                if (_reservedTokens + tokens > TotalBudget)
+                if ((long)_reservedTokens + tokens > TotalBudget)
                 {
                     return false;
                 }
@@ -113,29 +113,62 @@ namespace Glacier.Bundle.Budgeting
             }
 
             headRatio = Math.Clamp(headRatio, 0.1, 0.9);
-            string marker = "\n... [TRUNCATED] ...\n";
+            const string marker = "\n... [TRUNCATED] ...\n";
             int markerTokens = Estimator.EstimateTokens(marker);
             int availableContentTokens = maxTokens - markerTokens;
 
-            if (availableContentTokens <= 0)
+            if (availableContentTokens < 2)
             {
                 return Estimator.TruncateToTokens(text, maxTokens);
             }
 
-            int headTokens = Math.Max(1, (int)(availableContentTokens * headRatio));
+            int headTokens = Math.Clamp((int)(availableContentTokens * headRatio), 1, availableContentTokens - 1);
             int tailTokens = Math.Max(1, availableContentTokens - headTokens);
 
             string head = Estimator.TruncateToTokens(text, headTokens);
-
-            // For tail, take from the end of the text
-            int charsPerToken = (int)Math.Max(1, (text.Length / (double)currentTokens));
-            int tailCharEstimate = tailTokens * charsPerToken;
-            int tailStartIndex = Math.Max(head.Length, text.Length - tailCharEstimate);
-            if (tailStartIndex < text.Length && char.IsLowSurrogate(text[tailStartIndex]))
+            int safeHeadLen = HeuristicTokenEstimator.SnapEndToGraphemeBoundary(text, Math.Min(head.Length, text.Length));
+            if (safeHeadLen == head.Length)
             {
-                tailStartIndex++;
+                safeHeadLen = HeuristicTokenEstimator.SnapEndToWordBoundary(text, safeHeadLen);
             }
-            string tail = text.Substring(tailStartIndex);
+            if (safeHeadLen != head.Length)
+            {
+                head = text.Substring(0, safeHeadLen);
+            }
+
+            // Keep floating-point charsPerToken so tail capacity is not lost to integer truncation
+            double charsPerToken = Math.Max(1.0, text.Length / (double)currentTokens);
+            int tailCharEstimate = Math.Max(1, (int)Math.Floor(tailTokens * charsPerToken));
+            int tailStartIndex = Math.Max(head.Length, text.Length - tailCharEstimate);
+            tailStartIndex = HeuristicTokenEstimator.SnapStartToGraphemeBoundary(text, tailStartIndex);
+
+            // Snap tailStartIndex forward to a word boundary within a bounded window if it landed mid-word
+            if (tailStartIndex > head.Length &&
+                tailStartIndex < text.Length &&
+                !char.IsWhiteSpace(text[tailStartIndex - 1]) &&
+                !char.IsWhiteSpace(text[tailStartIndex]))
+            {
+                int remainingTailChars = text.Length - tailStartIndex;
+                int maxAdvance = Math.Min(text.Length, tailStartIndex + Math.Max(1, (int)(remainingTailChars * 0.3)));
+                for (int i = tailStartIndex; i < maxAdvance; i++)
+                {
+                    if (char.IsWhiteSpace(text[i]))
+                    {
+                        int nextWord = i + 1;
+                        while (nextWord < text.Length && char.IsWhiteSpace(text[nextWord]))
+                        {
+                            nextWord++;
+                        }
+                        if (nextWord < text.Length)
+                        {
+                            tailStartIndex = HeuristicTokenEstimator.SnapStartToGraphemeBoundary(text, nextWord);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            string tail = tailStartIndex < text.Length ? text.Substring(tailStartIndex) : string.Empty;
 
             int omittedChars = Math.Max(0, tailStartIndex - head.Length);
             string detailedMarker = $"\n... [TRUNCATED {omittedChars} CHARACTERS] ...\n";

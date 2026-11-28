@@ -1,12 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
-using Glacier.Vector.Index;
-using Glacier.Graph.Storage;
-using Glacier.Graph.Traversal;
-using Glacier.DocTree.Core;
-using Glacier.DocTree.Traversal;
 
 namespace Glacier.Bundle.Core
 {
@@ -30,10 +23,8 @@ namespace Glacier.Bundle.Core
         public BundleBuilder BeginBundle(string bundleName)
         {
             _sb.Clear();
-            _sb.AppendLine("======================================================================");
-            _sb.AppendLine($" SYSTEM RESOLVED CONTEXT BUNDLE: {bundleName.ToUpper()}");
-            _sb.AppendLine($" GENERATED AT: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
-            _sb.AppendLine("======================================================================\n");
+            BundleFormatting.AppendBundleHeader(_sb, bundleName);
+            _sb.AppendLine();
             return this;
         }
 
@@ -42,9 +33,16 @@ namespace Glacier.Bundle.Core
         /// </summary>
         public BundleBuilder AppendTabularRow(string header, Func<StringBuilder, StringBuilder> formatter)
         {
-            _sb.AppendLine($"--- [DATA LAYER] {header.ToUpper()} ---");
-            formatter(_sb);
-            _sb.AppendLine();
+            BundleFormatting.AppendTabularRow(_sb, header, formatter);
+            return this;
+        }
+
+        /// <summary>
+        /// Formats rows from a registered Glacier.Polaris <see cref="Glacier.Polaris.DataFrame"/> into the context bundle.
+        /// </summary>
+        public BundleBuilder AppendDataFrame(string dataFrameKey, int maxRows = 20, string label = "DATA LAYER")
+        {
+            BundleFormatting.AppendDataFrame(_sb, _context, dataFrameKey, maxRows, label);
             return this;
         }
 
@@ -53,23 +51,16 @@ namespace Glacier.Bundle.Core
         /// </summary>
         public BundleBuilder AppendGraphTopology(string graphKey, string centerNodeId, int maxHops, string label = "RELATIONAL MAP")
         {
-            var graph = _context.GetGraphStore(graphKey);
-            var search = new GraphSearch(graph);
-            var neighborhood = search.FindNeighborhood(centerNodeId, maxHops);
+            BundleFormatting.AppendGraphTopology(_sb, _context, graphKey, centerNodeId, maxHops, label);
+            return this;
+        }
 
-            _sb.AppendLine($"--- [RELATIONAL LAYER] {label.ToUpper()} ({maxHops} HOPS FROM {centerNodeId}) ---");
-            _sb.AppendLine($"Target Entity: {centerNodeId}");
-            _sb.AppendLine($"Connected Network Entities ({neighborhood.Count}):");
-
-            if (neighborhood.Count > 0)
-            {
-                _sb.AppendLine($"  {string.Join(", ", neighborhood)}");
-            }
-            else
-            {
-                _sb.AppendLine("  No relational connections found within this depth.");
-            }
-            _sb.AppendLine();
+        /// <summary>
+        /// Executes a zero-allocation neighborhood scan on a registered <see cref="Glacier.Graph.Storage.CsrGraphStore"/> and appends the topology.
+        /// </summary>
+        public BundleBuilder AppendCsrGraphTopology(string csrGraphKey, string centerNodeId, int maxHops, string label = "RELATIONAL MAP")
+        {
+            BundleFormatting.AppendCsrGraphTopology(_sb, _context, csrGraphKey, centerNodeId, maxHops, label);
             return this;
         }
 
@@ -78,22 +69,7 @@ namespace Glacier.Bundle.Core
         /// </summary>
         public BundleBuilder AppendDocumentTreeSection(string treeKey, string sectionHeader, string label = "DOCUMENT TREE POLICY")
         {
-            var root = _context.GetDocTree(treeKey);
-            var search = new TreeSearch(root);
-            var node = search.FindHeader(sectionHeader);
-
-            _sb.AppendLine($"--- [HIERARCHICAL LAYER] {label.ToUpper()} ---");
-            if (node != null)
-            {
-                _sb.AppendLine($"Document Path: {TreeSearch.GetSemanticPath(node)}");
-                _sb.AppendLine("Content Frame:");
-                _sb.AppendLine(node.GetFullText());
-            }
-            else
-            {
-                _sb.AppendLine($"[Warning: Structural document section '{sectionHeader}' could not be resolved.]");
-            }
-            _sb.AppendLine();
+            BundleFormatting.AppendDocumentTreeSection(_sb, _context, treeKey, sectionHeader, label);
             return this;
         }
 
@@ -102,22 +78,16 @@ namespace Glacier.Bundle.Core
         /// </summary>
         public BundleBuilder AppendVectorContext(string vectorKey, float[] queryVector, int topK, string label = "SEMANTIC HISTORY")
         {
-            var vector = _context.GetVectorIndex(vectorKey);
-            var results = vector.Search(queryVector, topK);
+            BundleFormatting.AppendVectorContext(_sb, _context, vectorKey, queryVector, topK, label);
+            return this;
+        }
 
-            _sb.AppendLine($"--- [SEMANTIC LAYER] {label.ToUpper()} ---");
-            if (results.Length > 0)
-            {
-                for (int i = 0; i < results.Length; i++)
-                {
-                    _sb.AppendLine($"[Rank {i + 1} | Match Score: {results[i].Score:F4}] {results[i].Metadata}");
-                }
-            }
-            else
-            {
-                _sb.AppendLine("  No semantic matches resolved.");
-            }
-            _sb.AppendLine();
+        /// <summary>
+        /// Performs a pooled, zero-array-allocation HNSW similarity scan over <see cref="Glacier.Vector.Index.HnswVectorIndex"/> and formats the Top-K results.
+        /// </summary>
+        public BundleBuilder AppendHnswVectorContext(string hnswKey, ReadOnlySpan<float> queryVector, int topK, string label = "SEMANTIC HISTORY", int efSearch = 64)
+        {
+            BundleFormatting.AppendHnswVectorContext(_sb, _context, hnswKey, queryVector, topK, label, efSearch);
             return this;
         }
 

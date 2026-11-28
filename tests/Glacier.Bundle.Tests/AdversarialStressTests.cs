@@ -61,12 +61,9 @@ public class AdversarialStressTests
         string result = builder.Build();
         int resultTokens = budget.EstimateTokens(result);
 
-        Assert.True(resultTokens <= totalBudget + 2,
+        Assert.True(resultTokens <= totalBudget,
             $"Tokens ({resultTokens}) exceeded total budget ({totalBudget}) under {strategy}");
-        if (strategy != CompactionStrategy.StrictPrune)
-        {
-            Assert.NotEmpty(result);
-        }
+        Assert.NotEmpty(result);
     }
 
     [Fact]
@@ -84,7 +81,7 @@ public class AdversarialStressTests
         string result = builder.Build();
         int resultTokens = budget.EstimateTokens(result);
 
-        Assert.True(resultTokens <= totalBudget + 2,
+        Assert.True(resultTokens <= totalBudget,
             $"Fixed section compaction failed to limit tokens ({resultTokens} > {totalBudget})");
         Assert.Contains("FIXED_POLICY", result);
         Assert.DoesNotContain("Some optional data", result);
@@ -110,6 +107,6 @@ public class AdversarialStressTests
         string result = builder.Build();
         int tokens = budget.EstimateTokens(result);
 
-        Assert.True(tokens <= totalBudget + 2);
+        Assert.True(tokens <= totalBudget);
     }
 }
